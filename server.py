@@ -38,6 +38,8 @@ import time
 import uuid
 import uuid
 from datetime import datetime, timezone
+from supervisor.telegram_manager import TelegramManager
+import supervisor.telegram_globals as telegram_globals
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from typing import Any, Dict, List, Optional
@@ -71,7 +73,7 @@ def _init_telegram():
     
     The bot token can be supplied via the OUROBOROS_TELEGRAM_TOKEN environment variable. If the variable is missing the integration is silently disabled – this keeps the core functional when the owner does not want Telegram connectivity.
     """
-    token = os.getenv(OUROBOROS_TELEGRAM_TOKEN)
+    token = os.getenv("OUROBOROS_TELEGRAM_TOKEN")
     if not token:
         return None
     manager = TelegramManager(token)
@@ -1070,3 +1072,16 @@ if __name__ == "__main__":
                 pass
         # Hard exit — sys.exit() can hang if threads/children are stuck
         os._exit(RESTART_EXIT_CODE)
+# Telegram integration initialization
+import os, logging
+from supervisor.telegram_manager import TelegramManager
+import supervisor.telegram_globals as telegram_globals
+
+token = os.getenv("OUROBOROS_TELEGRAM_TOKEN")
+if token:
+    manager = TelegramManager(token)
+    telegram_globals._TELEGRAM_MANAGER = manager
+    manager.start()
+    logging.getLogger(__name__).info("Telegram integration initialized.")
+else:
+    logging.getLogger(__name__).warning("OUROBOROS_TELEGRAM_TOKEN not set; Telegram integration disabled.")
