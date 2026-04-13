@@ -1,3 +1,5 @@
+import asyncio
+from supervisor.telegram_globals import _TELEGRAM_MANAGER, _TELEGRAM_CHAT_ID
 def send_with_budget(chat_id: int, text: str, log_text: Optional[str] = None,
                      force_budget: bool = False, fmt: str = "",
                      is_progress: bool = False) -> None:

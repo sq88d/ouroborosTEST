@@ -1,33 +1,88 @@
 """
+"""
+"""
+Ouroboros Agent Server — Self-editable entry point.
 Ouroboros Agent Server — Self-editable entry point.
 
+
+This file lives in REPO_DIR and can be modified by the agent.
 This file lives in REPO_DIR and can be modified by the agent.
 It runs as a subprocess of the launcher, serving the web UI and
+It runs as a subprocess of the launcher, serving the web UI and
+coordinating the supervisor/worker system.
 coordinating the supervisor/worker system.
 
+
+Starlette + uvicorn on localhost:{PORT}.
 Starlette + uvicorn on localhost:{PORT}.
 """
+"""
+
 
 import asyncio
+import asyncio
+import json
 import json
 import logging
+import logging
+import os
 import os
 import pathlib
+import pathlib
+import sys
 import sys
 import threading
+import threading
+import time
 import time
 import uuid
+import uuid
+from datetime import datetime, timezone
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
 
 from starlette.applications import Starlette
+from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse, FileResponse
+from starlette.responses import JSONResponse, HTMLResponse, FileResponse
+from starlette.routing import Route, Mount, WebSocketRoute
 from starlette.routing import Route, Mount, WebSocketRoute
 from starlette.staticfiles import StaticFiles
+from starlette.staticfiles import StaticFiles
+from starlette.websockets import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
+
 import uvicorn
+import uvicorn
+
+# ---------- Telegram integration ----------
+import os
+from supervisor.telegram_manager import TelegramManager
+from supervisor.telegram_bridge import install_handler
+from supervisor.telegram_globals import _TELEGRAM_MANAGER, _TELEGRAM_CHAT_ID
+
+def _init_telegram():
+    """Initialize Telegram manager if a token is provided.
+    
+    The bot token can be supplied via the OUROBOROS_TELEGRAM_TOKEN environment variable. If the variable is missing the integration is silently disabled – this keeps the core functional when the owner does not want Telegram connectivity.
+    """
+    token = os.getenv(OUROBOROS_TELEGRAM_TOKEN)
+    if not token:
+        return None
+    manager = TelegramManager(token)
+    install_handler(manager)
+    threading.Thread(target=lambda: asyncio.run(manager.start_polling()), daemon=True).start()
+    return manager
+
+import uvicorn
+ 
+# Telegram integration
+from supervisor.telegram_manager import TelegramManager
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -980,6 +1035,7 @@ if __name__ == "__main__":
         log.info("Port %d busy, using %d instead", PORT, actual_port)
     _write_port_file(actual_port)
     log.info("Starting Ouroboros server on port %d", actual_port)
+    _init_telegram()
     config = uvicorn.Config(app, host="127.0.0.1", port=actual_port, log_level="warning")
     server = uvicorn.Server(config)
 

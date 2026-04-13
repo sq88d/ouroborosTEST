@@ -1,4 +1,4 @@
-# Telegram integration globals
-# Set by server startup when the bot token is available.
+# Globals used to share the Telegram manager instance across modules.
+# They are set during server start‑up.
 _TELEGRAM_MANAGER = None
 _TELEGRAM_CHAT_ID = None
