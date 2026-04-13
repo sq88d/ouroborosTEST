@@ -201,3 +201,6 @@ Full text: [BIBLE.md](BIBLE.md)
 [MIT License](LICENSE)
 
 Created by [Anton Razzhigaev](https://t.me/abstractDL)
+## Changelog
+
+- **v3.3.2** – Fixed Telegram integration bugs: corrected environment variable usage, added initialization of TelegramManager, added bridge and manager files. Updated VERSION and pyproject.toml.
